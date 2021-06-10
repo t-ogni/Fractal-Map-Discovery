@@ -67,12 +67,12 @@ int main() {
                     sf::Vertex line[] =
                         {
                                 sf::Vertex(sf::Vector2f(x, y)),
-                                sf::Vertex(sf::Vector2f(x+1, y+1))
+                                sf::Vertex(sf::Vector2f(x, y+1))
                         };
-                    if (iter == max_iteration)
-                        iter = 0;
-                    double mu = static_cast<double>(iter) / max_iteration;
 
+                    // how to make colors more beautiful?
+                    if (iter == max_iteration) iter = 0;
+                    double mu = static_cast<double>(iter) / max_iteration;
                     auto clr = sf::Color(int(mu * 1234) % 255, int(mu * 1579) % 255, int(mu*2942) % 255);
                     line->color = clr;
                     window.draw(line, 2, sf::Lines);
