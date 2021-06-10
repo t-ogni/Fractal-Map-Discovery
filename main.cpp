@@ -1,82 +1,81 @@
 // Created by moonlin on 27.05.2021.
 
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include <complex>
 
-#define MIN_WINDOW_WIDTH 500
-#define MIN_WINDOW_HEIGHT 300
-#define MAX_ITER 100
-
-struct Coord { float x, y; };
 typedef std::complex<float> complex;
+struct Coord {  float x, y; };
 
 int main() {
+    auto mode = sf::VideoMode(600, 600);
+    sf::RenderWindow window(mode, "FMD");
 
-    enum {
-        STATE_MENU,
-        STATE_MANDELBROT
-    } windowState;
-    sf::RenderWindow window(sf::VideoMode(700, 500), "FMD");
-
-    Coord graphStart {-2, 2};
-    Coord graphEnd {2, -2};
+    size_t max_iteration = 128;
+    float width = 3; // scale = width ^ (-1)
+    complex center = {-1,0};
+    Coord size = {static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)};
+    float step = width / size.x;
 
     while (window.isOpen()) {
-        sf::Event event{};
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
+        sf::Event event {};
+        while (window.pollEvent(event)){
+            if (event.type == event.Closed){
                 window.close();
-            } else if (event.type == sf::Event::Resized) {
-                auto w = static_cast<float>(event.size.width);
-                auto h = static_cast<float>(event.size.height);
-                if (w < MIN_WINDOW_WIDTH)
-                    w = MIN_WINDOW_WIDTH;
-                if (h < MIN_WINDOW_HEIGHT)
-                    h = MIN_WINDOW_HEIGHT;
-                window.setSize(sf::Vector2u(w, h));
-                window.setView(
-                        sf::View(
-                                sf::Vector2f(w / 2.0, h / 2.0),
-                                sf::Vector2f(w, h)
-                        )
-                );
+                return 0;
+            }  else if (event.type == sf::Event::Resized)
+            {
+                std::cout << "new width: " << event.size.width << std::endl;
+                std::cout << "new height: " << event.size.height << std::endl;
+            } else if (event.type == event.MouseButtonPressed){
+                float x = center.real() + (static_cast<float>(event.mouseButton.x) - size.x / 2) * step;
+                float y = center.imag() + (static_cast<float>(event.mouseButton.y) - size.y / 2) * step;
+                center = {x, y};
+                if(event.mouseButton.button == sf::Mouse::Left){
+                    width /= 5;
+                } else if(event.mouseButton.button == sf::Mouse::Right){
+                    width *= 5;
+                }
+            } else if (event.type == sf::Event::MouseWheelScrolled) {
+
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+                    if(event.mouseWheelScroll.delta > 0)
+                        max_iteration *= 2;
+                    else
+                        max_iteration /= 2;    // 1/2 = 0.5 = 0
+                    if(max_iteration < 1) max_iteration = 1;
+                }
             }
         }
-
-//        switch (windowState) {
-//            case STATE_MENU:
-//                window.clear(sf::Color(100,200,100));
-//                window.d
-//
-//        }
-        // step size of one window pixel
-        window.clear(sf::Color(100,200,100));
-        float stepX = (graphEnd.x - graphStart.x) / window.getSize().x;
-        float stepY = (graphEnd.y - graphStart.y) / window.getSize().y;
-        for (int winY = 0; winY < window.getSize().y; ++winY) {
-            for (int winX = 0; winX < window.getSize().x; ++winX) {
-                // (winX, winY) - window coordinates
-                complex z(graphStart.x + stepX * winX, graphStart.y + stepY * winY);
-                complex c = z;
-                int iteration = 1;
-                while(iteration < MAX_ITER) {
-                    complex z2;
-                    z2.real(z.real() * z.real() - z.imag() * z.imag());
-                    z2.imag(2 * z.real() * z.imag());
-                    z2.real(z2.real() + c.real());
-                    z2.imag(z2.imag() + c.imag());
-                    z = z2;
-                    if (z.real() * z.real() + z.imag() * z.imag() > 4)
-                        break;
-                    iteration++;
+        size = {static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)};
+        step = width / size.x;
+        window.clear(sf::Color::Black);
+        std::cout << "center: " << center  << "\t width: " << width << "\t iter: " << max_iteration << std::endl;
+#pragma omp parallel for
+        for (int x = 0; x < size.x; ++x) {
+            float a = center.real() + ((float)x - size.x / 2) * step;
+            for (int y = 0; y < size.y; ++y) {
+                float b = center.imag() + ((float)y - size.y / 2) * step;
+                complex C = {a, b}, Z = {0.0f, 0.0f};
+                int iter = 0;
+                while (iter < max_iteration) {
+                    Z = Z*Z + C;
+                    if(Z.real() * Z.real() + Z.imag() * Z.imag() >= 4.0f) break;
+                    iter++;
                 }
+                if (iter < max_iteration) {
+                    sf::Vertex line[] =
+                        {
+                                sf::Vertex(sf::Vector2f(x, y)),
+                                sf::Vertex(sf::Vector2f(x+1, y+1))
+                        };
+                    if (iter == max_iteration)
+                        iter = 0;
+                    double mu = static_cast<double>(iter) / max_iteration;
 
-//                double iterationNorm = iteration / (double)MAX_ITER;
-                if(iteration < MAX_ITER){
-                    sf::VertexArray lines(sf::LinesStrip, 2);
-                    lines[0].position = sf::Vector2f(winX, winY);
-                    lines[1].position = sf::Vector2f(winX, winY + 1);
-                    window.draw(lines);
+                    auto clr = sf::Color(int(mu * 1234) % 255, int(mu * 1579) % 255, int(mu*2942) % 255);
+                    line->color = clr;
+                    window.draw(line, 2, sf::Lines);
                 }
             }
         }
