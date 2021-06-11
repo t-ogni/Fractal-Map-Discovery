@@ -1,9 +1,10 @@
 #Fractal-Map-Discovery
 
 ---
+
 ###bindings 
 
-####Mouse
+Mouse
 -  **Wheel Up** - increase image quality
 -  **Wheel Down** - reduce image quality
 -  **Left Click** - scope x5 to clicked point

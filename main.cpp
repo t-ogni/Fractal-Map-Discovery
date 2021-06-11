@@ -3,83 +3,125 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <complex>
+#include <thread>
+#include <chrono>
+extern "C" {
+    #include <quadmath.h> // __float128
+}
 
-typedef std::complex<float> complex;
-struct Coord {  float x, y; };
+typedef __float128 float128;
+//typedef float float128;
+typedef std::complex<float128> complex;
+struct Coord { float128 x, y; };
 
 int main() {
     auto mode = sf::VideoMode(600, 600);
     sf::RenderWindow window(mode, "FMD");
 
     size_t max_iteration = 128;
-    float width = 3; // scale = width ^ (-1)
-    complex center = {-1,0};
+    float128 width = 3; //0.00000000000024; // scale = width ^ (-1)
+    complex center = {-1, 0};//{-1.88488933694469, 0.00000000081387};
     Coord size = {static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)};
-    float step = width / size.x;
+    float128 step = width / size.x;
 
     while (window.isOpen()) {
         sf::Event event {};
         while (window.pollEvent(event)){
-            if (event.type == event.Closed){
-                window.close();
-                return 0;
-            }  else if (event.type == sf::Event::Resized)
-            {
-                std::cout << "new width: " << event.size.width << std::endl;
-                std::cout << "new height: " << event.size.height << std::endl;
-            } else if (event.type == event.MouseButtonPressed){
-                float x = center.real() + (static_cast<float>(event.mouseButton.x) - size.x / 2) * step;
-                float y = center.imag() + (static_cast<float>(event.mouseButton.y) - size.y / 2) * step;
-                center = {x, y};
-                if(event.mouseButton.button == sf::Mouse::Left){
-                    width /= 5;
-                } else if(event.mouseButton.button == sf::Mouse::Right){
-                    width *= 5;
+            switch (event.type) {
+                case (event.Closed):{
+                    window.close();
+                    return 0;
                 }
-            } else if (event.type == sf::Event::MouseWheelScrolled) {
+                case (event.MouseButtonPressed):{
+                    float128 x = center.real() + (static_cast<float128>(event.mouseButton.x) - size.x / 2) * step;
+                    float128 y = center.imag() + (static_cast<float128>(event.mouseButton.y) - size.y / 2) * step;
+                    center = {x, y};
+                    if(event.mouseButton.button == sf::Mouse::Left)
+                        width /= 5;
+                    else if(event.mouseButton.button == sf::Mouse::Right)
+                        width *= 5;
+                    break;
+                }
+                case (event.MouseWheelScrolled): {
+                    if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+                        if (event.mouseWheelScroll.delta > 0)
+                            max_iteration *= 2;
+                        else
+                            max_iteration /= 2;    // 1/2 = 0.5 = 0
 
-                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
-                    if(event.mouseWheelScroll.delta > 0)
-                        max_iteration *= 2;
-                    else
-                        max_iteration /= 2;    // 1/2 = 0.5 = 0
-                    if(max_iteration < 1) max_iteration = 1;
+                        if (max_iteration < 1) max_iteration = 1;
+                    }
+                    break;
                 }
+                default:{  }
             }
         }
-        size = {static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)};
+
+        // calculating variables
+        size = {static_cast<float128>(window.getSize().x), static_cast<float128>(window.getSize().y)};
         step = width / size.x;
+
+        // debug info
+        std::cout << "center: (" << static_cast<float>(center.real()) << ',' << static_cast<float>(center.imag()) << ')'
+                    << "\t width: " << static_cast<float>(width) << "\t iter: " << max_iteration << std::endl;
+
+        // Calculate the time spent
+        auto start = std::chrono::high_resolution_clock::now();
+        auto stop = start;
+
+        // draw image on screen
         window.clear(sf::Color::Black);
-        std::cout << "center: " << center  << "\t width: " << width << "\t iter: " << max_iteration << std::endl;
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int x = 0; x < size.x; ++x) {
-            float a = center.real() + ((float)x - size.x / 2) * step;
+            float128 a = center.real() + ((float)x - size.x / 2) * step;
             for (int y = 0; y < size.y; ++y) {
-                float b = center.imag() + ((float)y - size.y / 2) * step;
+                float128 b = center.imag() + ((float)y - size.y / 2) * step;
                 complex C = {a, b}, Z = {0.0f, 0.0f};
                 int iter = 0;
                 while (iter < max_iteration) {
-                    Z = Z*Z + C;
-                    if(Z.real() * Z.real() + Z.imag() * Z.imag() >= 4.0f) break;
+                    Z = Z * Z + C;
+                    if (Z.real() * Z.real() + Z.imag() * Z.imag() >= 4.0f) break;
                     iter++;
                 }
                 if (iter < max_iteration) {
                     sf::Vertex line[] =
                         {
-                                sf::Vertex(sf::Vector2f(x, y)),
-                                sf::Vertex(sf::Vector2f(x, y+1))
+                            sf::Vertex(sf::Vector2f(x, y)),
+                            sf::Vertex(sf::Vector2f(x, y+1))
                         };
 
-                    // how to make colors more beautiful?
-                    if (iter == max_iteration) iter = 0;
-                    double mu = static_cast<double>(iter) / max_iteration;
-                    auto clr = sf::Color(int(mu * 1234) % 255, int(mu * 1579) % 255, int(mu*2942) % 255);
-                    line->color = clr;
+                    // colors list
+                    static const std::vector<sf::Color> colors{
+                            {0,0,0},
+                            {213,67,31},
+                            {251,255,121},
+                            {62,223,89},
+                            {43,30,218},
+                            {0,255,247}
+                    };
+                    // the color will switch when iterations are close to the maximum
+                    double fraction = static_cast<double>(iter) / max_iteration * static_cast<double>(colors.size() - 1);
+                    auto color1 = colors[fraction];
+                    auto color2 = colors[fraction+1];
+
+                    // linear color interpolation //     c = c1 + ((c2 - c1) * fraction)
+                    sf::Color result;
+                    result.r = (color2.r - color1.r) * fraction;
+                    result.g = (color2.g - color1.g) * fraction;
+                    result.b = (color2.b - color1.b) * fraction;
+                    result += color1;
+
+                    line->color = result;
                     window.draw(line, 2, sf::Lines);
                 }
             }
         }
         window.display();
+
+        // Calculate the time spent
+        stop = std::chrono::high_resolution_clock::now();
+        std::cout << "calculated in " << std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()
+                << "ms"<< std::endl << "-----------" << std::endl;
     }
     return 0;
 }
