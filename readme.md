@@ -10,4 +10,5 @@ Mouse
 -  **Left Click** - scope x5 to clicked point
 -  **Right Click** - move away from the point (also x5)
 ####Keyboard
--  _nothing yet - need to make movement on wasd_
+-  **I** - insert coords using command line
+-  _need to make movement on wasd_

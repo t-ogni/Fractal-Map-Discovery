@@ -15,6 +15,7 @@ typedef std::complex<float128> complex;
 struct Coord { float128 x, y; };
 
 int main() {
+
     auto mode = sf::VideoMode(600, 600);
     sf::RenderWindow window(mode, "FMD");
 
@@ -53,7 +54,26 @@ int main() {
                     }
                     break;
                 }
-                default:{  }
+                case (event.KeyPressed): {
+                    switch (event.key.code) {
+                        case (sf::Keyboard::I): {
+                            float Cr, Ci, W;
+                            std::cout << "Description [Default]: value" << std::endl;
+                            std::cout << "Enter center Re coord [-1]: ";
+                            std::cin >> Cr;
+                            std::cout << "Enter center Im coord [0]: ";
+                            std::cin >> Ci;
+                            std::cout << "Enter center Width [3]: ";
+                            std::cin >> W;
+                            width = W;
+                            center = {Cr, Ci};
+                        }
+                        default: {
+                        }
+                    }
+                }
+                default: {
+                }
             }
         }
 
