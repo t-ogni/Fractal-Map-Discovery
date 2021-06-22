@@ -1,5 +1,7 @@
 // Created by moonlin on 27.05.2021.
 
+#include "MainMenu.h"
+
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <complex>
@@ -16,9 +18,30 @@ struct Coord { float128 x, y; };
 
 int main() {
 
-    auto mode = sf::VideoMode(600, 600);
-    sf::RenderWindow window(mode, "FMD");
+    sf::RenderWindow window(sf::VideoMode(600, 600), "FMD");
 
+    ScreenMode *main = new MainMenu(&window);
+
+
+    while (window.isOpen()) {
+        sf::Event event = {};
+        while (window.pollEvent(event)) {
+            // all system events would be
+            switch (event.type) {
+                case (event.Closed): {
+                    window.close();
+                    return 0;
+                }
+                default: {
+                    main->event();
+                }
+            }
+        }
+        window.clear();
+        main->draw();
+        window.display();
+    }
+    /*
     size_t max_iteration = 128;
     float128 width = 3; //0.00000000000024; // scale = width ^ (-1)
     complex center = {-1, 0};//{-1.88488933694469, 0.00000000081387};
@@ -26,20 +49,16 @@ int main() {
     float128 step = width / size.x;
 
     while (window.isOpen()) {
-        sf::Event event {};
-        while (window.pollEvent(event)){
+        sf::Event event{};
+        while (window.pollEvent(event)) {
             switch (event.type) {
-                case (event.Closed):{
-                    window.close();
-                    return 0;
-                }
-                case (event.MouseButtonPressed):{
+                case (event.MouseButtonPressed): {
                     float128 x = center.real() + (static_cast<float128>(event.mouseButton.x) - size.x / 2) * step;
                     float128 y = center.imag() + (static_cast<float128>(event.mouseButton.y) - size.y / 2) * step;
                     center = {x, y};
-                    if(event.mouseButton.button == sf::Mouse::Left)
+                    if (event.mouseButton.button == sf::Mouse::Left)
                         width /= 5;
-                    else if(event.mouseButton.button == sf::Mouse::Right)
+                    else if (event.mouseButton.button == sf::Mouse::Right)
                         width *= 5;
                     break;
                 }
@@ -143,5 +162,6 @@ int main() {
         std::cout << "calculated in " << std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()
                 << "ms"<< std::endl << "-----------" << std::endl;
     }
+    */
     return 0;
 }
