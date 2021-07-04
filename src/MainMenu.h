@@ -3,14 +3,20 @@
 #ifndef FRACTAL_MAP_DISCOVERY_MAINMENU_H
 #define FRACTAL_MAP_DISCOVERY_MAINMENU_H
 
-#include "ScreenMode.h"
+#include "RenderNode.h"
+#include "MandelbrotSet.h"
+#include "JullianSet.h"
+//#include <SFML/Text.hpp>
 
-class MainMenu : public ScreenMode {
+class MainMenu : public RenderNode {
+//    std::vector<std::tuple<RenderNode *, std::string>> resources; // not working
 public:
-    explicit MainMenu(sf::RenderWindow *renderWindow) : ScreenMode(renderWindow) { };
+    explicit MainMenu(sf::RenderWindow *renderWindow) : RenderNode(renderWindow) { };
 
     void draw() override;
-    void event() override {};
+    RenderNode* eventPoll(sf::Event &) override;
+
+    ~MainMenu() = default;
 };
 
 
