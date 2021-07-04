@@ -17,7 +17,6 @@ RenderNode* MainMenu::eventPoll(sf::Event &ev) {
                     text.setFillColor(sf::Color::White);
                     window->draw(text);
                     window->display();
-
                     return new MandelbrotSet(window);
                 }
                 case (sf::Keyboard::Num2): {

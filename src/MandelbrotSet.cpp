@@ -61,7 +61,8 @@ void MandelbrotSet::draw() {
     step = width / size.x;
 
     // debug info
-    std::cout << "center: (" << static_cast<float>(center.real()) << ',' << static_cast<float>(center.imag()) << ')'
+    std::stringstream debug;
+    debug << "center: (" << static_cast<float>(center.real()) << ',' << static_cast<float>(center.imag()) << ')'
               << "\t width: " << static_cast<float>(width)
               << "\t iter: " << max_iteration << std::endl;
 
@@ -91,11 +92,13 @@ void MandelbrotSet::draw() {
                 // colors list
                 static const std::vector<sf::Color> colors{
                         {0,0,0},
-                        {213,67,31},
-                        {251,255,121},
-                        {62,223,89},
-                        {43,30,218},
-                        {0,255,247}
+                        {14,35,187},
+                        {79,14,187},
+                        //{166,14,187},
+                        {14,122,187},
+                        {14,187,166},
+                        {9,116,103}
+
                 };
                 // the color will switch when iterations are close to the maximum
                 double fraction = static_cast<double>(iter) / max_iteration * static_cast<double>(colors.size() - 1);
@@ -114,4 +117,10 @@ void MandelbrotSet::draw() {
             }
         }
     }
+    sf::Font font;
+    font.loadFromFile("resources/SFUI.ttf");
+    sf::Text text(debug.str(), font);
+    text.setCharacterSize(12);
+    text.setFillColor(sf::Color::White);
+    window->draw(text);
 }
