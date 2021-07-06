@@ -5,11 +5,11 @@
 
 #include "RenderNode.h"
 #include "MandelbrotSet.h"
-#include "JullianSet.h"
-//#include <SFML/Text.hpp>
+#include "JuliaSet.h"
 
 class MainMenu : public RenderNode {
 //    std::vector<std::tuple<RenderNode *, std::string>> resources; // not working
+    int scroll = 0;
 public:
     explicit MainMenu(sf::RenderWindow *renderWindow) : RenderNode(renderWindow) { };
 

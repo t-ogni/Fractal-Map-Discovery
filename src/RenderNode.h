@@ -5,11 +5,21 @@
 
 #include <SFML/Graphics.hpp>
 
+
+#ifdef FL128
+    #include <quadmath.h>
+    typedef __float128 float128;
+#else
+    typedef float float128;
+#endif //FL128
+
 class RenderNode {
 protected:
     sf::RenderWindow *window = nullptr;
-    RenderNode() = default;
-    explicit RenderNode(sf::RenderWindow *renderWindow) : window(renderWindow) { };
+    struct { float128 x, y; } size;
+    explicit RenderNode(sf::RenderWindow *renderWindow) : window(renderWindow),
+                                size({static_cast<float>(window->getSize().x),
+                                      static_cast<float>(window->getSize().y)}) { };
 
 public:
     virtual void draw() = 0;

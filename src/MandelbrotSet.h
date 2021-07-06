@@ -8,27 +8,16 @@
 #include <iostream>
 #include "RenderNode.h"
 #include "MainMenu.h"
-//#include <SFML/Text.hpp>
 
-#define FL128
-
-#ifdef FL128
-    #include <quadmath.h>
-    typedef __float128 float128;
-#else
-    typedef float float128;
-#endif //FL128
 
 // Clion (2020.3) cannot inspect this code, and displays it as an error
 typedef std::complex<float128> complex;
-struct Coord { float128 x, y; };
-
 
 class MandelbrotSet : public RenderNode {
     size_t max_iteration = 128;
     float128 width = 3;
     complex center = {-1, 0};
-    Coord size = {static_cast<float>(window->getSize().x), static_cast<float>(window->getSize().y)};
+    struct  { float128 x, y; } size = {static_cast<float>(window->getSize().x), static_cast<float>(window->getSize().y)};
     float128 step = width / size.x;
 
 public:

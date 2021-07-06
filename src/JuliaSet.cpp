@@ -1,12 +1,12 @@
 // Created by moonlin on 04.07.2021.
 
-#include "JullianSet.h"
+#include "JuliaSet.h"
 
-void JullianSet::draw() {
+void JuliaSet::draw() {
 
 }
 
-RenderNode *JullianSet::eventPoll(sf::Event &event) {
+RenderNode *JuliaSet::eventPoll(sf::Event &event) {
     switch (event.type) {
         case (sf::Event::KeyPressed):{
             switch(event.key.code){

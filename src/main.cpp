@@ -5,8 +5,10 @@
 #include <SFML/Graphics.hpp>
 #include <thread>
 
+//#define FL128
+
 int main() {
-    sf::RenderWindow window(sf::VideoMode(600, 600), "FMD");
+    sf::RenderWindow window(sf::VideoMode(300, 300), "FMD");
     // we dont need to draw 120 frames per sec, etc.
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(true);
@@ -33,7 +35,6 @@ int main() {
             }
         }
         // refresh screen
-//        window.clear();
         RenderingArea->draw();
         window.display();
     }
