@@ -5,15 +5,26 @@
 #include <SFML/Graphics.hpp>
 #include <thread>
 
+#include <sys/types.h>
+#include <sys/stat.h>
 //#define FL128
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(300, 300), "FMD");
+
+    // create screenshots folder
+    #if defined(_WIN32)
+        _mkdir("screenshots");
+    #else
+        mkdir("screenshots", 0744); // rwx r-- r--
+    #endif
+
+    sf::RenderWindow window;
+    window.create(sf::VideoMode(1500, 800), "FMD");
     // we dont need to draw 120 frames per sec, etc.
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(true);
 
-    RenderNode *RenderingArea = new MainMenu(&window);
+    std::shared_ptr<RenderNode> RenderingArea = std::make_shared<MainMenu>(&window);
 
     while (window.isOpen()) {
         sf::Event event = {};
@@ -24,11 +35,14 @@ int main() {
                     window.close();
                     return 0;
                 }
+                case (event.Resized): {
+                    sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+                    window.setView(sf::View(visibleArea));
+                }
                 // ... and other events will be passed to the current drawing area
                 default: {
                     auto switchedArea = RenderingArea->eventPoll(event);
-                    if(switchedArea) {   // switch area if eventPoll callback returned new
-                        delete RenderingArea;
+                    if(switchedArea) {
                         RenderingArea = switchedArea;
                     }
                 }

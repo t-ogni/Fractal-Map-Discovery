@@ -7,23 +7,30 @@
 #include <complex>
 #include <iostream>
 #include "RenderNode.h"
-#include "MainMenu.h"
 
 
-// Clion (2020.3) cannot inspect this code, and displays it as an error
-typedef std::complex<float128> complex;
+typedef std::complex<bigfloat> complex;
 
 class MandelbrotSet : public RenderNode {
-    size_t max_iteration = 128;
-    float128 width = 3;
+    size_t max_iteration = 256;
+    bigfloat width = 3;
     complex center = {-1, 0};
-    struct  { float128 x, y; } size = {static_cast<float>(window->getSize().x), static_cast<float>(window->getSize().y)};
-    float128 step = width / size.x;
+    struct  { bigfloat x, y; } size = {static_cast<float>(window->getSize().x), static_cast<float>(window->getSize().y)};
+    bigfloat step = width / size.x;
+    const std::vector<sf::Color> colors {
+            {0,   0,   0},
+            {14,  35,  187},
+            {14,  122, 187},
+            {79,  122,  187},
+            {79,  187, 166},
+            {80,   116, 103}
+
+    };
 
 public:
     explicit MandelbrotSet(sf::RenderWindow *renderWindow) : RenderNode(renderWindow) {};
 
-    RenderNode *eventPoll(sf::Event &event) override;
+    std::shared_ptr<RenderNode> eventPoll(sf::Event &event) override;
     void draw() override;
 };
 
