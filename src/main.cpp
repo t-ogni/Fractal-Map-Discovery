@@ -19,12 +19,12 @@ int main() {
     #endif
 
     sf::RenderWindow window;
-    window.create(sf::VideoMode(1500, 800), "FMD");
+    window.create(sf::VideoMode(1280, 960), "FMD");
     // we dont need to draw 120 frames per sec, etc.
-    window.setFramerateLimit(0);
+    window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
 
-    std::shared_ptr<RenderNode> RenderingArea = std::make_shared<MainMenu>(&window);
+    std::shared_ptr<AbstractRenderNode> RenderingArea = std::make_shared<MainMenu>(&window);
 
     while (window.isOpen()) {
         sf::Event event = {};
@@ -41,7 +41,7 @@ int main() {
                 }
                 // ... and other events will be passed to the current drawing area
                 default: {
-                    auto switchedArea = RenderingArea->eventPoll(event);
+                    auto switchedArea = RenderingArea->eventHandler(event);
                     if(switchedArea) {
                         RenderingArea = switchedArea;
                     }

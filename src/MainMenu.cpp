@@ -3,10 +3,10 @@
 #include "MainMenu.h"
 #include <SFML/Graphics/Sprite.hpp>
 
-std::shared_ptr<RenderNode> MainMenu::eventPoll(sf::Event &event) {
+std::shared_ptr<AbstractRenderNode> MainMenu::eventHandler(sf::Event &event) {
+    auto x = static_cast<uint>(window->getSize().x / 23);
+    auto y = static_cast<uint>(window->getSize().y / 43);
 
-    auto x = static_cast<float>(window->getSize().x / 23);
-    auto y = static_cast<float>(window->getSize().y / 43);
     switch (event.type) {
         // keyboard buttons
         case (sf::Event::KeyPressed): {
@@ -37,7 +37,7 @@ std::shared_ptr<RenderNode> MainMenu::eventPoll(sf::Event &event) {
         case(sf::Event::MouseButtonPressed): {
             if (event.mouseButton.button != sf::Mouse::Left) break;
             for (int i = 0; i < fractals.size(); ++i) {
-                const double previewCoords [] =  // { x0, y0, x1, y1 }
+                const uint previewCoords [] =  // { x0, y0, x1, y1 }
                     {
                             x * (1 + 11 * (i & 1)), y * (1 + 21 * int(i / 2)) + scroll, // pos of the top left tile
                             (11 * x) * (1 + (i & 1)), (21 * y) * (1 + int(i / 2)) + scroll // pos of the lower right tile
@@ -55,7 +55,7 @@ std::shared_ptr<RenderNode> MainMenu::eventPoll(sf::Event &event) {
         }
         case (sf::Event::MouseWheelScrolled): {
             if(event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
-                scroll += event.mouseWheelScroll.delta * 20;
+                scroll += (int) event.mouseWheelScroll.delta * 20;
             if (scroll > 0) scroll = 0;
             break;
         }
@@ -69,6 +69,7 @@ std::shared_ptr<RenderNode> MainMenu::eventPoll(sf::Event &event) {
 
 void MainMenu::draw() {
     window->clear();
+
     // gradient light blue background
     sf::Vertex background[] =
             {
@@ -79,7 +80,6 @@ void MainMenu::draw() {
                     sf::Vertex({static_cast<float>(window->getSize().x), 0}, sf::Color(171, 241, 255))
             };
     window->draw(background, 4, sf::Quads);
-
 
     // I think, this part of the code is difficult to understand and wrote some tips
     // scale depends on the width
@@ -93,9 +93,9 @@ void MainMenu::draw() {
 
         y = n / 43
     */
+	auto x = static_cast<float>(window->getSize().x) / 23;
+	auto y = static_cast<float>(window->getSize().y) / 43;
 
-    auto x = static_cast<float>(window->getSize().x / 23);
-    auto y = static_cast<float>(window->getSize().y / 43);
     for (int i = 0; i < fractals.size(); ++i) { // 'i' means the tile number in order from left to right
         sf::Texture texture;
         sf::Sprite sprite;
@@ -104,11 +104,14 @@ void MainMenu::draw() {
 
         // scale to tiles width
         auto scale = 10 * x / texture.getSize().x;
-        sf::Vector2<float> textureSize = {texture.getSize().x * scale, texture.getSize().y * scale};
+        sf::Vector2<float> textureSize = {
+        		static_cast<float>(10 * x), // texture.getSize().x * scale
+        		static_cast<float>(texture.getSize().y * scale)
+        };
 
         sprite.setPosition(
-                {
-                    (x * (1 + 11 * (i & 1))),
+        		{
+                    static_cast<float>((x * (1 + 11 * (i & 1)))),
                     y + ((y + ((textureSize.y < 20 * y) ? textureSize.y : 20 * y)) * int(i / 2) ) + scroll // spacing between tiles not more than img height
                 }
         );
